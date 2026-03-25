@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Briefing Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #0f0f1a; color: #e2e8f0;
+    padding: 16px; max-width: 100%; overflow-x: hidden;
+  }
+  .header {
+    text-align: center; padding: 20px 0;
+    border-bottom: 2px solid #2d2d44;
+    margin-bottom: 20px;
+  }
+  .header h1 { font-size: 24px; color: #fff; margin-bottom: 4px; }
+  .header .date { color: #94a3b8; font-size: 14px; }
+
+  .market-overview {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px; margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #1a1a2e; border-radius: 12px; padding: 14px;
+    border: 1px solid #2d2d44; text-align: center;
+  }
+  .metric-card .label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric-card .value { font-size: 20px; font-weight: 700; margin: 4px 0; }
+  .metric-card .change { font-size: 13px; font-weight: 600; }
+  .up { color: #22c55e; }
+  .down { color: #ef4444; }
+
+  .section { margin-bottom: 24px; }
+  .section h2 {
+    font-size: 18px; color: #fff; margin-bottom: 12px;
+    padding-bottom: 8px; border-bottom: 1px solid #2d2d44;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .chart-container {
+    background: #1a1a2e; border-radius: 12px; padding: 16px;
+    border: 1px solid #2d2d44; margin-bottom: 16px;
+    position: relative; height: 300px;
+  }
+  .chart-container.tall { height: 400px; }
+
+  .stock-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .stock-card {
+    background: #1a1a2e; border-radius: 12px; padding: 14px;
+    border: 1px solid #2d2d44; transition: transform 0.2s;
+  }
+  .stock-card:active { transform: scale(0.98); }
+  .stock-card .ticker { font-size: 16px; font-weight: 700; color: #fff; }
+  .stock-card .name { font-size: 11px; color: #64748b; margin-bottom: 6px; }
+  .stock-card .price { font-size: 20px; font-weight: 700; }
+  .stock-card .pct { font-size: 14px; font-weight: 600; margin-top: 2px; }
+  .stock-card .tag {
+    display: inline-block; font-size: 10px; padding: 2px 6px;
+    border-radius: 4px; margin-top: 6px;
+  }
+  .tag-hold { background: rgba(99,102,241,0.2); color: #818cf8; }
+  .tag-watch { background: rgba(245,158,11,0.2); color: #fbbf24; }
+
+  .sector-row {
+    display: flex; align-items: center; padding: 10px 0;
+    border-bottom: 1px solid #1e1e30;
+  }
+  .sector-row .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 10px; }
+  .sector-row .name { flex: 1; font-size: 14px; }
+  .sector-row .stocks { font-size: 12px; color: #64748b; }
+  .sector-row .perf { font-size: 14px; font-weight: 600; min-width: 60px; text-align: right; }
+
+  .footer { text-align: center; padding: 16px 0; color: #475569; font-size: 12px; }
+
+  @media (max-width: 480px) {
+    .market-overview { grid-template-columns: repeat(2, 1fr); }
+    .stock-grid { grid-template-columns: repeat(2, 1fr); }
+    .chart-container { height: 250px; }
+    .chart-container.tall { height: 350px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 Stock Briefing Dashboard</h1>
+  <div class="date" id="currentDate"></div>
+</div>
+
+<div class="market-overview">
+  <div class="metric-card">
+    <div class="label">S&P 500</div>
+    <div class="value">5,768</div>
+    <div class="change up">+0.64%</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">NASDAQ</div>
+    <div class="value">18,271</div>
+    <div class="change up">+0.31%</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">DOW</div>
+    <div class="value">42,583</div>
+    <div class="change up">+0.89%</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">VIX</div>
+    <div class="value">17.15</div>
+    <div class="change down">-2.3%</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">10Y 국채</div>
+    <div class="value">4.33%</div>
+    <div class="change down">-2bp</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">USD/KRW</div>
+    <div class="value">1,472</div>
+    <div class="change up">+0.15%</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">BTC</div>
+    <div class="value">$87,420</div>
+    <div class="change up">+1.8%</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">WTI</div>
+    <div class="value">$69.12</div>
+    <div class="change down">-0.4%</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>📈 전체 종목 등락률</h2>
+  <div class="chart-container tall">
+    <canvas id="allStocksChart"></canvas>
+  </div>
+</div>
+
+<div class="section">
+  <h2>💰 보유 종목</h2>
+  <div class="stock-grid" id="holdingsGrid"></div>
+</div>
+
+<div class="section">
+  <h2>👀 관심 종목</h2>
+  <div class="stock-grid" id="watchlistGrid"></div>
+</div>
+
+<div class="section">
+  <h2>🎯 섹터별 성과</h2>
+  <div class="chart-container">
+    <canvas id="sectorChart"></canvas>
+  </div>
+  <div id="sectorList" style="background:#1a1a2e;border-radius:12px;padding:16px;border:1px solid #2d2d44;"></div>
+</div>
+
+<div class="section">
+  <h2>📊 보유 vs 관심 성과 비교</h2>
+  <div class="chart-container">
+    <canvas id="compareChart"></canvas>
+  </div>
+</div>
+
+<div class="footer">
+  JonberAI Trading Bot — 데이터는 참고용이며 투자 조언이 아닙니다
+</div>
+
+<script>
+const now = new Date();
+document.getElementById('currentDate').textContent =
+  now.toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'long'}) + ' 업데이트';
+
+const holdings = [
+  {ticker:'PL', name:'Planet Labs', price:33.82, change:2.5},
+  {ticker:'RDW', name:'Redwire', price:9.20, change:-1.2},
+  {ticker:'CRWV', name:'CoreWeave', price:48.50, change:-3.1},
+  {ticker:'BE', name:'Bloom Energy', price:150.12, change:1.8},
+  {ticker:'PLTR', name:'Palantir', price:154.78, change:0.96},
+  {ticker:'MSTR', name:'Strategy (ex-MicroStrategy)', price:136.25, change:-2.4},
+  {ticker:'GRAB', name:'Grab Holdings', price:3.79, change:-0.8},
+];
+
+const watchlist = [
+  {ticker:'COHR', name:'Coherent', price:235.88, change:1.5},
+  {ticker:'ANET', name:'Arista Networks', price:420.00, change:-1.2},
+  {ticker:'AVGO', name:'Broadcom', price:321.50, change:0.8},
+  {ticker:'CRDO', name:'Credo Technology', price:103.40, change:-3.45},
+  {ticker:'LITE', name:'Lumentum', price:155.00, change:2.1},
+  {ticker:'ORCL', name:'Oracle', price:185.00, change:-0.5},
+  {ticker:'NBIS', name:'Nebius Group', price:114.15, change:-2.95},
+  {ticker:'IREN', name:'IREN Ltd', price:42.29, change:2.42},
+  {ticker:'VRT', name:'Vertiv Holdings', price:270.89, change:5.8},
+  {ticker:'RKLB', name:'Rocket Lab', price:67.43, change:0.30},
+  {ticker:'GEV', name:'GE Vernova', price:450.00, change:1.2},
+  {ticker:'NVDA', name:'NVIDIA', price:172.93, change:-3.03},
+  {ticker:'MU', name:'Micron', price:422.88, change:-4.82},
+];
+
+const sectors = [
+  {name:'AI/반도체', color:'#6366f1', stocks:['NVDA','AVGO','CRDO','MU','COHR','LITE'], avgChange: -1.15},
+  {name:'우주/방산', color:'#f59e0b', stocks:['PL','RDW','RKLB'], avgChange: 0.53},
+  {name:'에너지/인프라', color:'#10b981', stocks:['BE','VRT','GEV','IREN'], avgChange: 2.86},
+  {name:'클라우드/SW', color:'#3b82f6', stocks:['PLTR','ORCL','CRWV','ANET','NBIS'], avgChange: -1.34},
+  {name:'크립토/핀테크', color:'#ef4444', stocks:['MSTR','GRAB'], avgChange: -1.60},
+];
+
+function createStockCard(stock, type) {
+  const isUp = stock.change >= 0;
+  return `<div class="stock-card">
+    <div class="ticker">${stock.ticker}</div>
+    <div class="name">${stock.name}</div>
+    <div class="price ${isUp?'up':'down'}">$${stock.price.toLocaleString()}</div>
+    <div class="pct ${isUp?'up':'down'}">${isUp?'+':''}${stock.change}%</div>
+    <span class="tag ${type==='hold'?'tag-hold':'tag-watch'}">${type==='hold'?'보유':'관심'}</span>
+  </div>`;
+}
+
+document.getElementById('holdingsGrid').innerHTML = holdings.map(s => createStockCard(s,'hold')).join('');
+document.getElementById('watchlistGrid').innerHTML = watchlist.map(s => createStockCard(s,'watch')).join('');
+
+// Sector list
+document.getElementById('sectorList').innerHTML = sectors.map(s => {
+  const isUp = s.avgChange >= 0;
+  return `<div class="sector-row">
+    <div class="dot" style="background:${s.color}"></div>
+    <div class="name">${s.name}</div>
+    <div class="stocks">${s.stocks.join(', ')}</div>
+    <div class="perf ${isUp?'up':'down'}">${isUp?'+':''}${s.avgChange.toFixed(2)}%</div>
+  </div>`;
+}).join('');
+
+// Charts
+const allStocks = [...holdings, ...watchlist];
+const sortedStocks = [...allStocks].sort((a,b) => b.change - a.change);
+
+new Chart(document.getElementById('allStocksChart'), {
+  type: 'bar',
+  data: {
+    labels: sortedStocks.map(s => s.ticker),
+    datasets: [{
+      data: sortedStocks.map(s => s.change),
+      backgroundColor: sortedStocks.map(s => s.change >= 0 ? 'rgba(34,197,94,0.8)' : 'rgba(239,68,68,0.8)'),
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: {display: false},
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.parsed.y > 0 ? '+' : ''}${ctx.parsed.y}%`
+        }
+      }
+    },
+    scales: {
+      y: {
+        grid: {color: 'rgba(255,255,255,0.06)'},
+        ticks: {color: '#94a3b8', callback: v => v + '%'}
+      },
+      x: {
+        grid: {display: false},
+        ticks: {color: '#94a3b8', font: {size: 11, weight: 'bold'}}
+      }
+    }
+  }
+});
+
+new Chart(document.getElementById('sectorChart'), {
+  type: 'doughnut',
+  data: {
+    labels: sectors.map(s => s.name),
+    datasets: [{
+      data: sectors.map(s => s.stocks.length),
+      backgroundColor: sectors.map(s => s.color),
+      borderWidth: 0,
+      hoverOffset: 8,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {color: '#e2e8f0', font: {size: 13}, padding: 16}
+      }
+    }
+  }
+});
+
+const holdAvg = holdings.reduce((s,h) => s+h.change, 0) / holdings.length;
+const watchAvg = watchlist.reduce((s,w) => s+w.change, 0) / watchlist.length;
+
+new Chart(document.getElementById('compareChart'), {
+  type: 'bar',
+  data: {
+    labels: ['보유 종목 평균', '관심 종목 평균', 'S&P 500'],
+    datasets: [{
+      data: [holdAvg, watchAvg, 0.64],
+      backgroundColor: [
+        holdAvg >= 0 ? 'rgba(99,102,241,0.8)' : 'rgba(239,68,68,0.8)',
+        watchAvg >= 0 ? 'rgba(245,158,11,0.8)' : 'rgba(239,68,68,0.8)',
+        'rgba(34,197,94,0.8)'
+      ],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: {
+      legend: {display: false},
+      tooltip: {callbacks: {label: ctx => `${ctx.parsed.x > 0 ? '+' : ''}${ctx.parsed.x.toFixed(2)}%`}}
+    },
+    scales: {
+      x: {grid: {color:'rgba(255,255,255,0.06)'}, ticks: {color:'#94a3b8', callback: v => v+'%'}},
+      y: {grid: {display:false}, ticks: {color:'#e2e8f0', font: {size: 14, weight: 'bold'}}}
+    }
+  }
+});
+</script>
+</body>
+</html>
