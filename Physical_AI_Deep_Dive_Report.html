@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physical AI 심층 분석 보고서</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg-primary: #0a0e17;
+    --bg-secondary: #111827;
+    --bg-card: #1a2235;
+    --bg-card-hover: #1f2a42;
+    --accent-green: #76b900;
+    --accent-blue: #00b4d8;
+    --accent-purple: #8b5cf6;
+    --accent-orange: #f59e0b;
+    --accent-pink: #ec4899;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-dim: #64748b;
+    --border-color: #1e293b;
+    --glow-green: rgba(118, 185, 0, 0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* ===== HERO SECTION ===== */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 50%, rgba(118,185,0,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 20% 80%, rgba(0,180,216,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(139,92,246,0.06) 0%, transparent 60%);
+  }
+
+  /* Animated grid */
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(118,185,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(118,185,0,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridMove 20s linear infinite;
+  }
+  @keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(60px, 60px); }
+  }
+
+  /* Floating particles */
+  .particles {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    opacity: 0;
+    animation: floatParticle 8s ease-in-out infinite;
+  }
+  @keyframes floatParticle {
+    0% { opacity: 0; transform: translateY(100vh) scale(0); }
+    20% { opacity: 0.6; }
+    80% { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-10vh) scale(1.5); }
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: rgba(118,185,0,0.1);
+    border: 1px solid rgba(118,185,0,0.3);
+    border-radius: 30px;
+    font-size: 0.85rem;
+    color: var(--accent-green);
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeSlideUp 1s ease-out;
+  }
+  .hero-badge::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.5); }
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeSlideUp 1s ease-out 0.2s both;
+  }
+  .hero h1 .gradient-text {
+    background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin-bottom: 3rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeSlideUp 1s ease-out 0.4s both;
+  }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeSlideUp 1s ease-out 0.6s both;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .hero-stat {
+    text-align: center;
+  }
+  .hero-stat .number {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--accent-green);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .hero-stat .label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  /* ===== NAVIGATION ===== */
+  .nav-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,23,0.9);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0;
+  }
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 0;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .nav-item {
+    padding: 1rem 1.5rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+  .nav-item:hover, .nav-item.active {
+    color: var(--accent-green);
+    border-bottom-color: var(--accent-green);
+    background: rgba(118,185,0,0.05);
+  }
+
+  /* ===== SECTIONS ===== */
+  .section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+  }
+
+  .section-header {
+    margin-bottom: 3rem;
+  }
+  .section-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-green);
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-size: 2.2rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+  }
+  .section-desc {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    max-width: 700px;
+  }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(118,185,0,0.3);
+    transform: translateY(-2px);
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-green), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .card:hover::before { opacity: 1; }
+
+  /* ===== TIMELINE ===== */
+  .timeline {
+    position: relative;
+    padding-left: 40px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent-green), var(--accent-blue), var(--accent-purple));
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 2.5rem;
+    animation: fadeSlideUp 0.6s ease-out both;
+  }
+  .timeline-dot {
+    position: absolute;
+    left: -33px;
+    top: 8px;
+    width: 16px;
+    height: 16px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    border: 3px solid var(--bg-primary);
+    box-shadow: 0 0 10px var(--glow-green);
+  }
+  .timeline-date {
+    font-size: 0.8rem;
+    color: var(--accent-green);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .timeline-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .timeline-content h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+  .timeline-content p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  /* ===== ARCHITECTURE DIAGRAM ===== */
+  .arch-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem;
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+  }
+  .arch-layer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+  .arch-layer:hover {
+    transform: scale(1.02);
+  }
+  .arch-layer .layer-icon {
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    flex-shrink: 0;
+  }
+  .arch-layer .layer-info h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .arch-layer .layer-info p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+  .layer-perception { background: rgba(0,180,216,0.1); border: 1px solid rgba(0,180,216,0.3); }
+  .layer-perception .layer-icon { background: rgba(0,180,216,0.2); }
+  .layer-reasoning { background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); }
+  .layer-reasoning .layer-icon { background: rgba(139,92,246,0.2); }
+  .layer-action { background: rgba(118,185,0,0.1); border: 1px solid rgba(118,185,0,0.3); }
+  .layer-action .layer-icon { background: rgba(118,185,0,0.2); }
+  .layer-world { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); }
+  .layer-world .layer-icon { background: rgba(245,158,11,0.2); }
+
+  .arch-arrows {
+    display: flex;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    animation: arrowPulse 2s ease-in-out infinite;
+  }
+  @keyframes arrowPulse {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(3px); }
+  }
+
+  /* ===== GR00T DUAL SYSTEM ANIMATION ===== */
+  .dual-system {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1.5rem;
+    align-items: stretch;
+    margin: 2rem 0;
+  }
+  @media (max-width: 768px) {
+    .dual-system { grid-template-columns: 1fr; }
+    .dual-connector { display: none; }
+  }
+  .system-box {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+  }
+  .system-box.system1 { border-color: rgba(0,180,216,0.3); }
+  .system-box.system2 { border-color: rgba(139,92,246,0.3); }
+  .system-box h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+  .system-box .sys-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 1rem;
+  }
+  .system1 .sys-tag { background: rgba(0,180,216,0.2); color: var(--accent-blue); }
+  .system2 .sys-tag { background: rgba(139,92,246,0.2); color: var(--accent-purple); }
+  .system-box ul {
+    list-style: none;
+    padding: 0;
+  }
+  .system-box li {
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .system-box li::before {
+    content: '▸';
+    color: var(--accent-green);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .dual-connector {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+  }
+  .connector-line {
+    width: 2px;
+    height: 30px;
+    background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple));
+  }
+  .connector-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(118,185,0,0.2);
+    border: 2px solid var(--accent-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    animation: rotateIcon 4s linear infinite;
+  }
+  @keyframes rotateIcon { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  /* ===== COSMOS PIPELINE ===== */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding: 2rem 0;
+    scrollbar-width: none;
+  }
+  .pipeline::-webkit-scrollbar { display: none; }
+  .pipeline-step {
+    min-width: 200px;
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .pipeline-step:hover {
+    border-color: var(--accent-green);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(118,185,0,0.1);
+  }
+  .pipeline-step .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent-green);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .pipeline-step h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+  .pipeline-step p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+  .pipeline-arrow {
+    font-size: 1.5rem;
+    color: var(--accent-green);
+    padding: 0 0.5rem;
+    flex-shrink: 0;
+    animation: arrowRight 1.5s ease-in-out infinite;
+  }
+  @keyframes arrowRight {
+    0%, 100% { transform: translateX(0); opacity: 0.5; }
+    50% { transform: translateX(5px); opacity: 1; }
+  }
+
+  /* ===== MARKET CHART ===== */
+  .chart-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 1.5rem;
+    height: 300px;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .bar {
+    width: 100%;
+    max-width: 60px;
+    border-radius: 8px 8px 0 0;
+    transition: height 1.5s ease-out;
+    position: relative;
+    cursor: pointer;
+  }
+  .bar:hover { filter: brightness(1.3); }
+  .bar-value {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  .bar-label {
+    margin-top: 0.8rem;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  /* ===== INDUSTRY GRID ===== */
+  .industry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  .industry-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .industry-card:hover {
+    border-color: rgba(118,185,0,0.3);
+    transform: translateY(-3px);
+  }
+  .industry-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  .industry-card h4 {
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+  }
+  .industry-card p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+  .industry-stat {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+  }
+
+  /* ===== SIM-TO-REAL ANIMATION ===== */
+  .sim-real-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 2rem;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 2rem;
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+  }
+  @media (max-width: 768px) {
+    .sim-real-container { grid-template-columns: 1fr; }
+  }
+  .sim-world, .real-world {
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .sim-world {
+    background: rgba(139,92,246,0.1);
+    border: 1px solid rgba(139,92,246,0.3);
+  }
+  .real-world {
+    background: rgba(118,185,0,0.1);
+    border: 1px solid rgba(118,185,0,0.3);
+  }
+  .sim-world h4, .real-world h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+  .transfer-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .transfer-arrow .arrow-beam {
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-green));
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .transfer-arrow .arrow-beam::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -30px;
+    width: 30px;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    animation: beamShine 2s ease-in-out infinite;
+  }
+  @keyframes beamShine {
+    0% { left: -30px; }
+    100% { left: 110px; }
+  }
+  .transfer-label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  /* ===== OPINION / ANALYSIS ===== */
+  .opinion-card {
+    background: linear-gradient(135deg, rgba(118,185,0,0.08), rgba(0,180,216,0.08));
+    border: 1px solid rgba(118,185,0,0.2);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin: 2rem 0;
+    position: relative;
+  }
+  .opinion-card::before {
+    content: '"';
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    font-size: 5rem;
+    color: rgba(118,185,0,0.15);
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+  .opinion-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: var(--accent-green);
+  }
+  .opinion-card p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+  }
+
+  /* ===== TABS ===== */
+  .tab-container { margin: 2rem 0; }
+  .tab-buttons {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tab-buttons::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    font-family: inherit;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.3s;
+  }
+  .tab-btn.active {
+    color: var(--accent-green);
+    border-bottom-color: var(--accent-green);
+  }
+  .tab-content {
+    display: none;
+    padding: 2rem 0;
+    animation: fadeIn 0.4s ease;
+  }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ===== CHALLENGE CARDS ===== */
+  .challenge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  .challenge-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+  }
+  .challenge-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3rem;
+    font-weight: 900;
+    color: rgba(118,185,0,0.1);
+    position: absolute;
+    top: 10px;
+    right: 20px;
+  }
+  .challenge-card h4 {
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+    color: var(--accent-orange);
+  }
+  .challenge-card p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  /* ===== DATA TABLE ===== */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+  .data-table th {
+    background: rgba(118,185,0,0.1);
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent-green);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .data-table td {
+    padding: 1rem 1.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .data-table tr:hover td {
+    background: rgba(118,185,0,0.03);
+  }
+
+  /* ===== SCROLL ANIMATION ===== */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 0.8s ease-out;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    text-align: center;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+  .footer a {
+    color: var(--accent-green);
+    text-decoration: none;
+  }
+
+  /* ===== SOURCE LIST ===== */
+  .source-list {
+    list-style: none;
+    padding: 0;
+  }
+  .source-list li {
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.85rem;
+  }
+  .source-list li a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .source-list li a:hover { color: var(--accent-green); }
+  .source-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-right: 8px;
+  }
+  .tag-nvidia { background: rgba(118,185,0,0.2); color: var(--accent-green); }
+  .tag-research { background: rgba(139,92,246,0.2); color: var(--accent-purple); }
+  .tag-market { background: rgba(245,158,11,0.2); color: var(--accent-orange); }
+  .tag-korean { background: rgba(0,180,216,0.2); color: var(--accent-blue); }
+
+  /* ===== ANIMATED ROBOT SVG ===== */
+  .robot-svg-container {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+  }
+
+  /* ===== FLOW DIAGRAM ===== */
+  .flow-diagram {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+  .flow-node {
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 140px;
+    transition: all 0.3s;
+    cursor: default;
+  }
+  .flow-node:hover { transform: scale(1.05); }
+  .flow-arrow-h {
+    display: flex;
+    align-items: center;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+  }
+
+  /* Progress ring */
+  .progress-ring {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .progress-ring svg {
+    transform: rotate(-90deg);
+  }
+  .progress-ring .ring-bg {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 4;
+  }
+  .progress-ring .ring-fill {
+    fill: none;
+    stroke-width: 4;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 2s ease-out;
+  }
+  .progress-ring .ring-label {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="grid-bg"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="hero-badge">DEEP DIVE REPORT — 2026</div>
+  <h1>
+    <span class="gradient-text">Physical AI</span><br>
+    심층 분석 보고서
+  </h1>
+  <p class="hero-subtitle">
+    AI가 디지털 세계를 넘어 물리적 현실로 진출하는 시대 — NVIDIA 풀스택 아키텍처부터
+    Rhoda AI의 비디오 액션 모델, Sharpa의 RL+VLA 하이브리드까지, Physical AI의 기술 경쟁과 미래 전망
+  </p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="number" id="counter1">0</div>
+      <div class="label">시장 규모 (2025, 억$)</div>
+    </div>
+    <div class="hero-stat">
+      <div class="number" id="counter2">0</div>
+      <div class="label">CAGR (%)</div>
+    </div>
+    <div class="hero-stat">
+      <div class="number" id="counter3">0</div>
+      <div class="label">2035 전망 (억$)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NAV ===== -->
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <a class="nav-item active" href="#overview">개요</a>
+    <a class="nav-item" href="#evolution">진화 과정</a>
+    <a class="nav-item" href="#architecture">기술 아키텍처</a>
+    <a class="nav-item" href="#groot">GR00T N1</a>
+    <a class="nav-item" href="#cosmos">Cosmos 플랫폼</a>
+    <a class="nav-item" href="#sim2real">Sim-to-Real</a>
+    <a class="nav-item" href="#startups">스타트업 경쟁</a>
+    <a class="nav-item" href="#industry">산업 응용</a>
+    <a class="nav-item" href="#market">시장 분석</a>
+    <a class="nav-item" href="#challenges">과제</a>
+    <a class="nav-item" href="#opinion">견해</a>
+    <a class="nav-item" href="#sources">출처</a>
+  </div>
+</nav>
+
+<!-- ===== 1. OVERVIEW ===== -->
+<section class="section" id="overview">
+  <div class="section-header reveal">
+    <div class="section-tag">01 — Overview</div>
+    <h2 class="section-title">Physical AI란 무엇인가?</h2>
+    <p class="section-desc">
+      AI가 물리적 세계를 인지하고, 추론하고, 실제로 행동하는 — 진정한 의미의 "체화된 지능(Embodied Intelligence)"
+    </p>
+  </div>
+
+  <div class="reveal" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+    <div class="card">
+      <h3 style="color: var(--accent-blue); margin-bottom: 1rem;">정의</h3>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;">
+        Physical AI(피지컬 AI)는 센서를 통해 물리적 환경을 인지하고, 수집된 정보를 기반으로 독자적 판단을 내리며,
+        액추에이터(로봇 팔, 바퀴 등)를 통해 현실 세계에 물리적 영향을 가하는 AI 시스템입니다.
+        기존 로봇/자동화와의 핵심 차이점은 <strong style="color: var(--text-primary);">미리 정해진 규칙이 아닌,
+        상황을 이해하고 스스로 판단하여 행동</strong>한다는 점입니다.
+      </p>
+    </div>
+    <div class="card">
+      <h3 style="color: var(--accent-purple); margin-bottom: 1rem;">AI 진화의 세 번째 물결</h3>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;">
+        <strong style="color: var(--accent-blue);">1세대: Perception AI</strong> — 이미지, 음성, 텍스트를 이해<br>
+        <strong style="color: var(--accent-purple);">2세대: Generative AI</strong> — 텍스트, 이미지, 음성을 생성<br>
+        <strong style="color: var(--accent-green);">3세대: Physical AI</strong> — 물리 세계를 이해하고 실제로 행동<br><br>
+        Jensen Huang은 CES 2025에서 "AI의 다음 물결은 Physical AI"라 선언하고,
+        CES 2026에서는 Physical AI의 "ChatGPT 모먼트"가 도래했다고 발표했습니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- Architecture Diagram -->
+  <div class="reveal" style="margin-top: 3rem;">
+    <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem;">Physical AI의 4단계 인지 프레임워크</h3>
+    <div class="arch-diagram">
+      <div class="arch-layer layer-perception" onclick="toggleDetail(this)">
+        <div class="layer-icon">👁️</div>
+        <div class="layer-info">
+          <h4 style="color: var(--accent-blue);">Perception (인지)</h4>
+          <p>카메라, LiDAR, 레이더, 촉각 센서 등 멀티모달 센서 데이터를 저차원 잠재 표현(latent representation)으로 변환. 컴퓨터 비전이 시장의 32.5% 차지.</p>
+        </div>
+      </div>
+      <div class="arch-arrows">↓ ↓ ↓</div>
+      <div class="arch-layer layer-reasoning" onclick="toggleDetail(this)">
+        <div class="layer-icon">🧠</div>
+        <div class="layer-info">
+          <h4 style="color: var(--accent-purple);">Reasoning (추론)</h4>
+          <p>관찰된 현상으로부터 인과 관계를 파악하고, 복잡한 상황에서의 의사결정 수행. Vision-Language Model(VLM)을 활용한 체인-오브-소트(chain-of-thought) 추론.</p>
+        </div>
+      </div>
+      <div class="arch-arrows">↓ ↓ ↓</div>
+      <div class="arch-layer layer-world" onclick="toggleDetail(this)">
+        <div class="layer-icon">🌍</div>
+        <div class="layer-info">
+          <h4 style="color: var(--accent-orange);">World Modeling (세계 모델링)</h4>
+          <p>물리 법칙 기반의 예측 시뮬레이션. 미래 시나리오를 여러 개 생성/평가하여 최적의 행동 경로를 결정. NVIDIA Cosmos가 대표적 World Foundation Model.</p>
+        </div>
+      </div>
+      <div class="arch-arrows">↓ ↓ ↓</div>
+      <div class="arch-layer layer-action" onclick="toggleDetail(this)">
+        <div class="layer-icon">🤖</div>
+        <div class="layer-info">
+          <h4 style="color: var(--accent-green);">Action (행동)</h4>
+          <p>추론 결과를 실제 모터 제어 신호로 변환. Diffusion Transformer를 활용한 연속적 로봇 동작 생성. 물리적 조작과 환경 피드백을 통한 폐쇄 루프 학습.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 2. EVOLUTION TIMELINE ===== -->
+<section class="section" id="evolution" style="background: var(--bg-secondary); border-radius: 0; max-width: 100%; padding-left: calc((100% - 1200px)/2 + 2rem); padding-right: calc((100% - 1200px)/2 + 2rem);">
+  <div class="section-header reveal">
+    <div class="section-tag">02 — Evolution</div>
+    <h2 class="section-title">Physical AI 진화 타임라인</h2>
+    <p class="section-desc">주요 이정표와 기술 발전 과정</p>
+  </div>
+
+  <div class="timeline reveal">
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">2024.03 — GTC 2024</div>
+      <div class="timeline-content">
+        <h4>Project GR00T 발표</h4>
+        <p>NVIDIA가 범용 휴머노이드 로봇 파운데이션 모델 "GR00T(Generalist Robot 00 Technology)"를 최초 공개. 모든 로봇에 탑재 가능한 범용 AI 플랫폼 비전 제시.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot" style="background: var(--accent-blue);"></div>
+      <div class="timeline-date">2025.01 — CES 2025</div>
+      <div class="timeline-content">
+        <h4>Physical AI 시대 선언 & Cosmos 출시</h4>
+        <p>Jensen Huang이 "AI의 다음 물결은 Physical AI"라 선언. Cosmos World Foundation Model 플랫폼 공개. 9,000조 토큰 + 2,000만 시간 데이터로 사전학습된 세계 모델.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot" style="background: var(--accent-purple);"></div>
+      <div class="timeline-date">2025.03 — GTC 2025</div>
+      <div class="timeline-content">
+        <h4>GR00T N1 공개</h4>
+        <p>세계 최초 오픈 휴머노이드 로봇 파운데이션 모델 Isaac GR00T N1 발표. 이중 시스템 아키텍처(System 1: 빠른 반사, System 2: 심층 추론) 도입. 합성 데이터 + 실제 데이터 결합으로 40% 성능 향상 달성.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot" style="background: var(--accent-orange);"></div>
+      <div class="timeline-date">2026.01 — CES 2026</div>
+      <div class="timeline-content">
+        <h4>Physical AI의 "ChatGPT 모먼트"</h4>
+        <p>Rubin 플랫폼, Alpamayo 자율주행 모델 포트폴리오, Cosmos 2세대 공개. "Physical AI의 ChatGPT 모먼트가 도래했다" 선언. 실험실을 넘어 실제 산업 현장에 Physical AI 스택 전면 배치 시작.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot" style="background: var(--accent-pink);"></div>
+      <div class="timeline-date">2026.03 — GTC 2026</div>
+      <div class="timeline-content">
+        <h4>차세대 모델 & Physical AI Data Factory</h4>
+        <p>Cosmos 3, GR00T N1.7, Alpamayo 1.5 공개. Physical AI Data Factory Blueprint로 대규모 합성 데이터 생성 자동화. Newton 물리 엔진과 OpenUSD 기반 디지털 트윈 에코시스템 확장.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 3. TECHNICAL ARCHITECTURE ===== -->
+<section class="section" id="architecture">
+  <div class="section-header reveal">
+    <div class="section-tag">03 — Architecture</div>
+    <h2 class="section-title">NVIDIA Physical AI 기술 스택</h2>
+    <p class="section-desc">디지털 트윈, 시뮬레이션, 파운데이션 모델, 그리고 실세계 배포를 아우르는 풀스택 아키텍처</p>
+  </div>
+
+  <div class="tab-container reveal">
+    <div class="tab-buttons">
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-stack')">전체 스택</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-omniverse')">Omniverse & 디지털 트윈</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-training')">학습 파이프라인</button>
+    </div>
+
+    <div class="tab-content active" id="tab-stack">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div class="card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.8rem;">🏗️</div>
+          <h4 style="color: var(--accent-green); margin-bottom: 0.5rem;">NVIDIA Omniverse</h4>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">OpenUSD 기반 디지털 트윈 시뮬레이션 플랫폼. 물리적으로 정확한 가상 세계에서 로봇과 AV를 학습시키는 핵심 인프라. 3D 데이터의 표준화된 공유 프레임워크 제공.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.8rem;">🌌</div>
+          <h4 style="color: var(--accent-blue); margin-bottom: 0.5rem;">NVIDIA Cosmos</h4>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">World Foundation Model 플랫폼. 물리 세계를 이해하고 미래 시나리오를 예측하는 생성적 세계 모델. Autoregressive + Diffusion 이중 아키텍처. Nano/Super/Ultra 3가지 스케일.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.8rem;">🤖</div>
+          <h4 style="color: var(--accent-purple); margin-bottom: 0.5rem;">NVIDIA Isaac</h4>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">로보틱스 시뮬레이션, 합성 데이터 생성, 정책 학습 프레임워크. GR00T N1 파운데이션 모델, Isaac Sim, Isaac Lab-Arena 포함. OSMO로 분산 학습 오케스트레이션.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.8rem;">🚗</div>
+          <h4 style="color: var(--accent-orange); margin-bottom: 0.5rem;">NVIDIA Alpamayo</h4>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">자율주행을 위한 오픈 추론형 VLA(Vision-Language-Action) 모델 포트폴리오. 100억 파라미터의 chain-of-thought 추론 모델. 25개국 1,727시간 주행 데이터셋.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-omniverse">
+      <div class="sim-real-container">
+        <div class="sim-world">
+          <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔮</div>
+          <h4 style="color: var(--accent-purple);">디지털 트윈 (가상 세계)</h4>
+          <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">
+            Omniverse + OpenUSD 기반<br>
+            물리 정확도 높은 시뮬레이션<br>
+            도메인 랜덤화(Domain Randomization)<br>
+            Newton 물리 엔진<br>
+            대규모 합성 데이터 생성
+          </p>
+        </div>
+        <div class="transfer-arrow">
+          <div class="arrow-beam"></div>
+          <div class="transfer-label">Sim-to-Real<br>Transfer</div>
+          <div class="arrow-beam"></div>
+        </div>
+        <div class="real-world">
+          <div style="font-size: 2.5rem; margin-bottom: 1rem;">🏭</div>
+          <h4 style="color: var(--accent-green);">실세계 배포</h4>
+          <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">
+            엣지 디바이스 추론<br>
+            실시간 센서 피드백 루프<br>
+            적응형 행동 조정<br>
+            Human-in-the-loop 보정<br>
+            지속적 학습 & 업데이트
+          </p>
+        </div>
+      </div>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">
+        OpenUSD는 3D 데이터 교환의 표준 프레임워크로, 시뮬레이션에서 배포까지 데이터를 원활하게 공유합니다.
+        Cosmos Transfer WFM은 세그멘테이션 맵, 깊이 맵, LiDAR 스캔, 포즈 추정, 궤적 맵 등의 구조화된 입력으로부터
+        제어 가능한 포토리얼 비디오를 생성합니다.
+      </p>
+    </div>
+
+    <div class="tab-content" id="tab-training">
+      <h4 style="margin-bottom: 1.5rem;">Physical AI 학습 파이프라인</h4>
+      <div class="pipeline">
+        <div class="pipeline-step">
+          <div class="step-num">STEP 01</div>
+          <h4>데이터 수집 & 큐레이션</h4>
+          <p>2,000만 시간 비디오 데이터. Blackwell 플랫폼으로 14일 내 처리. Cosmos Tokenizer: 8x 압축률.</p>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="step-num">STEP 02</div>
+          <h4>World Model 사전학습</h4>
+          <p>9,000조 토큰으로 학습. Autoregressive + Diffusion 아키텍처. Cosmos Predict 2.5 (2B/14B).</p>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="step-num">STEP 03</div>
+          <h4>시뮬레이션 기반 학습</h4>
+          <p>Omniverse/Isaac Sim 환경. 도메인 랜덤화. 합성 데이터 + 실 데이터 결합 학습.</p>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="step-num">STEP 04</div>
+          <h4>파인튜닝 & RL 후학습</h4>
+          <p>강화학습 기반 후학습. Task-specific 미세조정. RLHF 적용.</p>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="step-num">STEP 05</div>
+          <h4>실세계 배포 & 적응</h4>
+          <p>엣지 추론 최적화. 실시간 피드백 루프. 지속적 개선 사이클.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 4. GR00T N1 DUAL SYSTEM ===== -->
+<section class="section" id="groot" style="background: var(--bg-secondary); border-radius: 0; max-width: 100%; padding-left: calc((100% - 1200px)/2 + 2rem); padding-right: calc((100% - 1200px)/2 + 2rem);">
+  <div class="section-header reveal">
+    <div class="section-tag">04 — GR00T N1</div>
+    <h2 class="section-title">이중 시스템 아키텍처</h2>
+    <p class="section-desc">
+      인간 인지 과학에서 영감을 받은 System 1(직관적 반사) + System 2(심층 추론)의 이중 구조 —
+      세계 최초의 오픈 휴머노이드 로봇 파운데이션 모델
+    </p>
+  </div>
+
+  <div class="dual-system reveal">
+    <div class="system-box system1">
+      <span class="sys-tag">SYSTEM 1 — Fast Thinking</span>
+      <h3 style="color: var(--accent-blue);">빠른 반사적 행동 모델</h3>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+        Diffusion Transformer 기반으로 실시간 연속 모터 액션을 생성합니다.
+        인간의 직관이나 반사 신경과 유사한 역할을 수행합니다.
+      </p>
+      <ul>
+        <li>Diffusion Transformer 모듈로 유연한 모터 동작 실시간 생성</li>
+        <li>인간 시연 데이터 + Omniverse 대규모 합성 데이터로 학습</li>
+        <li>잡기, 이동, 양팔 작업, 물체 이송 등 범용 기술 습득</li>
+        <li>System 2의 계획을 정밀한 연속 로봇 동작으로 변환</li>
+      </ul>
+    </div>
+
+    <div class="dual-connector">
+      <div class="connector-line"></div>
+      <div class="connector-icon">⚡</div>
+      <div class="connector-line"></div>
+      <div style="font-size: 0.7rem; color: var(--text-dim); text-align: center;">End-to-End<br>Joint Training</div>
+      <div class="connector-line"></div>
+      <div class="connector-icon" style="animation-direction: reverse;">🔄</div>
+      <div class="connector-line"></div>
+    </div>
+
+    <div class="system-box system2">
+      <span class="sys-tag">SYSTEM 2 — Slow Thinking</span>
+      <h3 style="color: var(--accent-purple);">심층 추론 모델</h3>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+        사전학습된 Vision-Language Model(VLM) 기반으로 환경을 해석하고
+        작업 목표를 이해하여 행동을 계획합니다.
+      </p>
+      <ul>
+        <li>Vision-Language Model로 환경 시각 인식 + 언어 명령 이해</li>
+        <li>NVIDIA L40 GPU에서 10Hz로 실행되는 추론 모듈</li>
+        <li>복잡한 멀티스텝 작업에서 장기 컨텍스트 기반 계획 수립</li>
+        <li>에지 케이스에서의 의도적이고 구조화된 의사결정</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="reveal" style="margin-top: 2rem;">
+    <div class="card" style="border-color: rgba(118,185,0,0.3);">
+      <h4 style="color: var(--accent-green); margin-bottom: 1rem;">📊 핵심 성과 지표</h4>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: 900; color: var(--accent-green); font-family: 'JetBrains Mono';">+40%</div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary);">합성+실 데이터 결합 시 성능 향상</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: 900; color: var(--accent-blue); font-family: 'JetBrains Mono';">70x</div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary);">기존 대비 성능 부스트</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: 900; color: var(--accent-purple); font-family: 'JetBrains Mono';">10Hz</div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary);">System 2 추론 빈도</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: 900; color: var(--accent-orange); font-family: 'JetBrains Mono';">Open</div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary);">완전 커스터마이징 가능한 오픈 모델</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 5. COSMOS ===== -->
+<section class="section" id="cosmos">
+  <div class="section-header reveal">
+    <div class="section-tag">05 — Cosmos Platform</div>
+    <h2 class="section-title">Cosmos World Foundation Model</h2>
+    <p class="section-desc">물리 세계를 "이해"하는 AI의 핵심 — 세계 모델(World Model)이란 무엇이며, 어떻게 작동하는가</p>
+  </div>
+
+  <div class="reveal">
+    <div class="card" style="margin-bottom: 2rem;">
+      <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">🌌 세계 모델(World Model)의 개념</h4>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">
+        Physical AI에는 두 개의 디지털 트윈이 필요합니다: <strong style="color: var(--text-primary);">자기 자신의 디지털 트윈(정책 모델)</strong>과
+        <strong style="color: var(--text-primary);">세계의 디지털 트윈(세계 모델)</strong>입니다.
+        Cosmos는 범용 세계 파운데이션 모델로서, 하위 애플리케이션(자율주행, 로봇 등)에 맞게 파인튜닝할 수 있는 기반 모델입니다.
+        물리 법칙을 이해하고, 미래의 여러 시나리오를 생성하여 최적의 행동 경로를 선택합니다.
+      </p>
+    </div>
+  </div>
+
+  <div class="reveal" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+    <div class="card">
+      <h4 style="margin-bottom: 1rem;">🔀 Autoregressive 모델</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        Transformer 디코더 아키텍처 기반. 입력 텍스트와 과거 비디오 프레임을 조건으로 다음 토큰을 예측하는 방식으로 비디오를 생성합니다.
+        복잡한 시간적 종속성 처리에 효과적입니다.
+      </p>
+    </div>
+    <div class="card">
+      <h4 style="margin-bottom: 1rem;">🌊 Diffusion 모델</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        학습 데이터를 노이즈로 분해한 뒤, 사용자 입력에 따라 재구성하는 방식.
+        고품질의 사실적 출력물 생성에 강점이 있으며, Flow 기반 아키텍처(Cosmos Predict 2.5)로 진화했습니다.
+      </p>
+    </div>
+    <div class="card">
+      <h4 style="margin-bottom: 1rem;">📐 Transfer WFM</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        세그멘테이션 맵, 깊이 맵, LiDAR 스캔, 포즈 추정, 궤적 맵 등 구조화된 비디오 입력으로부터
+        제어 가능한 포토리얼(photorealistic) 비디오 출력을 생성합니다.
+      </p>
+    </div>
+  </div>
+
+  <div class="reveal" style="margin-top: 2rem;">
+    <h4 style="margin-bottom: 1rem;">모델 스케일 비교</h4>
+    <table class="data-table">
+      <thead>
+        <tr><th>모델 티어</th><th>특성</th><th>적합 용도</th><th>학습 데이터</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color: var(--accent-green);">Nano</strong></td>
+          <td>실시간 추론, 저지연, 엣지 배포 최적화</td>
+          <td>임베디드 시스템, 모바일 로봇</td>
+          <td rowspan="3" style="text-align: center;">9,000조 토큰<br>2,000만 시간<br>AV/로봇/합성 데이터</td>
+        </tr>
+        <tr>
+          <td><strong style="color: var(--accent-blue);">Super</strong></td>
+          <td>성능과 품질의 균형. 베이스라인 모델</td>
+          <td>범용 시뮬레이션, 연구</td>
+        </tr>
+        <tr>
+          <td><strong style="color: var(--accent-purple);">Ultra</strong></td>
+          <td>최대 품질과 정밀도. 커스텀 모델 증류용</td>
+          <td>고정밀 시뮬레이션, 프로덕션</td>
+        </tr>
+        <tr>
+          <td><strong style="color: var(--accent-orange);">Predict 2.5</strong></td>
+          <td>Flow 기반. Text/Image/Video2World 통합</td>
+          <td>멀티모달 세계 생성 (2B/14B)</td>
+          <td>2억 큐레이션 비디오 클립<br>+ RL 후학습</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 6. SIM-TO-REAL ===== -->
+<section class="section" id="sim2real" style="background: var(--bg-secondary); border-radius: 0; max-width: 100%; padding-left: calc((100% - 1200px)/2 + 2rem); padding-right: calc((100% - 1200px)/2 + 2rem);">
+  <div class="section-header reveal">
+    <div class="section-tag">06 — Sim-to-Real Transfer</div>
+    <h2 class="section-title">시뮬레이션에서 현실로</h2>
+    <p class="section-desc">Physical AI의 가장 핵심적인 기술 난제 — Sim-to-Real Gap을 어떻게 극복하는가</p>
+  </div>
+
+  <!-- Animated Sim-to-Real Flow -->
+  <div class="reveal">
+    <div class="sim-real-container" style="background: transparent; border: none; padding: 0;">
+      <div class="sim-world" style="padding: 2.5rem;">
+        <div style="font-size: 2.5rem; margin-bottom: 1rem;">💻</div>
+        <h4 style="color: var(--accent-purple); margin-bottom: 1rem;">시뮬레이션 세계</h4>
+        <div style="text-align: left; color: var(--text-secondary); font-size: 0.85rem;">
+          <p style="margin-bottom: 0.5rem;">⚙️ 단순화된 물리 모델</p>
+          <p style="margin-bottom: 0.5rem;">📷 클린 센서 신호</p>
+          <p style="margin-bottom: 0.5rem;">🎯 완벽한 제어 환경</p>
+          <p style="margin-bottom: 0.5rem;">♾️ 무한 반복 학습 가능</p>
+          <p>💰 저비용, 고속 데이터 생성</p>
+        </div>
+      </div>
+      <div class="transfer-arrow" style="gap: 12px;">
+        <div style="font-size: 0.75rem; color: var(--accent-orange); font-weight: 700;">GAP</div>
+        <div class="arrow-beam" style="width: 100px;"></div>
+        <div style="font-size: 0.7rem; color: var(--text-dim); text-align: center; max-width: 120px;">
+          마찰, 마모, 접촉 역학, 센서 노이즈, 지연
+        </div>
+        <div class="arrow-beam" style="width: 100px;"></div>
+        <div style="font-size: 0.75rem; color: var(--accent-green); font-weight: 700;">BRIDGE</div>
+      </div>
+      <div class="real-world" style="padding: 2.5rem;">
+        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🌍</div>
+        <h4 style="color: var(--accent-green); margin-bottom: 1rem;">현실 세계</h4>
+        <div style="text-align: left; color: var(--text-secondary); font-size: 0.85rem;">
+          <p style="margin-bottom: 0.5rem;">🌪️ 복잡한 물리 현상</p>
+          <p style="margin-bottom: 0.5rem;">📡 노이즈 포함 센서 데이터</p>
+          <p style="margin-bottom: 0.5rem;">🔄 예측 불가능한 환경 변화</p>
+          <p style="margin-bottom: 0.5rem;">⚠️ 안전 제약 조건</p>
+          <p>📊 제한된 학습 기회</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal" style="margin-top: 2rem;">
+    <h4 style="margin-bottom: 1.5rem;">Sim-to-Real Gap 극복 전략</h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+      <div class="card">
+        <h4 style="color: var(--accent-blue); margin-bottom: 0.8rem;">🎲 도메인 랜덤화</h4>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">
+          마찰 계수, 질량 분포, 센서 노이즈를 랜덤화하여 학습시킴으로써
+          다양한 환경에서의 일반화 성능을 확보합니다.
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="color: var(--accent-purple); margin-bottom: 0.8rem;">🔄 합성 + 실 데이터 공동 학습</h4>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">
+          대규모 합성 데이터와 소량의 실제 데이터를 결합하여 학습.
+          MolmoBot의 연구에서 Zero-shot Sim-to-Real 전이 성공 사례 입증.
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="color: var(--accent-orange); margin-bottom: 0.8rem;">👤 Human-in-the-Loop</h4>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">
+          실제 로봇 실행 중 인간이 직접 온라인 보정 신호를 제공하여
+          정책 실행의 정확도를 높이는 프레임워크.
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="color: var(--accent-green); margin-bottom: 0.8rem;">🏭 Physical AI Data Factory</h4>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">
+          NVIDIA의 Blueprint로 세계 모델링, 휴머노이드 기술, 자율주행에서의
+          대규모 합성 데이터 생성을 자동화.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 6.5 STARTUP LANDSCAPE: Rhoda AI vs Sharpa ===== -->
+<section class="section" id="startups">
+  <div class="section-header reveal">
+    <div class="section-tag">06.5 — Startup Landscape</div>
+    <h2 class="section-title">Physical AI 스타트업 경쟁: 패러다임 전쟁</h2>
+    <p class="section-desc">
+      VLA(Vision-Language-Action)로는 스케일링이 어렵다? — Rhoda AI의 비디오 액션 모델 vs Sharpa의 RL+IL 하이브리드,
+      그리고 Physical AI 접근법의 분기점
+    </p>
+  </div>
+
+  <!-- Sunday / ALOHA Intro -->
+  <div class="reveal" style="margin-bottom: 2.5rem;">
+    <div class="card" style="border-color: rgba(0,180,216,0.3); background: linear-gradient(135deg, rgba(0,180,216,0.05), rgba(139,92,246,0.05));">
+      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+        <div style="font-size: 1.5rem;">🏠</div>
+        <div>
+          <h4 style="color: var(--accent-blue);">배경: Sunday Robotics & ALOHA 생태계</h4>
+          <span style="font-size: 0.75rem; color: var(--text-dim);">가정용 휴머노이드의 부상</span>
+        </div>
+      </div>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">
+        Stanford 출신 Tony Zhao & Cheng Chi가 설립한 <strong style="color: var(--text-primary);">Sunday Robotics</strong>는
+        가정용 휴머노이드 로봇 "Memo"를 개발 중이며, 2026년 3월 Series B에서 $165M을 유치하여
+        <strong style="color: var(--accent-green);">$1.15B 밸류에이션</strong>에 도달했습니다.
+        이들이 만든 <strong style="color: var(--accent-blue);">ALOHA</strong>(A Low-cost Open-source Hardware system)는
+        $20K 예산으로 정밀 양팔 텔레오퍼레이션이 가능한 오픈소스 하드웨어로, 모방학습(Imitation Learning) 기반
+        로봇 연구의 사실상 표준이 되었습니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- Rhoda AI vs Sharpa: Head to Head -->
+  <div class="reveal">
+    <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem;">두 접근법의 정면 비교</h3>
+    <div class="dual-system" style="margin: 0;">
+
+      <!-- Rhoda AI -->
+      <div class="system-box" style="border-color: rgba(236,72,153,0.4);">
+        <span class="sys-tag" style="background: rgba(236,72,153,0.2); color: var(--accent-pink);">VIDEO PREDICTION</span>
+        <h3 style="color: var(--accent-pink); margin-bottom: 0.3rem;">Rhoda AI</h3>
+        <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 1rem;">
+          $450M Series A · $1.7B 밸류에이션 · 18개월 스텔스 후 등장
+        </p>
+
+        <h4 style="font-size: 0.9rem; color: var(--accent-orange); margin-bottom: 0.5rem;">핵심 주장: "VLA로는 스케일링이 안 된다"</h4>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+          수만~수십만 시간의 로봇 텔레오퍼레이션 데이터를 모아도 진정한 범용 행동은 달성 불가.
+          인터넷 스케일의 비디오가 물리 세계를 이해하는 가장 확장 가능한 데이터 소스.
+        </p>
+
+        <h4 style="font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.5rem;">DVA (Direct Video-Action) 모델</h4>
+        <ul>
+          <li>수억 개 인터넷 비디오로 사전학습 → 물리/운동/상호작용 prior 형성</li>
+          <li>소량의 로봇 데이터로 후학습 → 비디오 예측을 실제 액션으로 매핑</li>
+          <li>관측 → <strong style="color: var(--accent-pink);">미래 비디오 예측</strong> → 액션 변환 → 실행 → 재관측 (수백ms 루프)</li>
+          <li>수백 프레임의 긴 컨텍스트 처리 (일반 VLA 대비 압도적)</li>
+          <li>One-shot 학습 및 시각적 모호성 해소 능력</li>
+        </ul>
+
+        <div style="margin-top: 1rem; padding: 1rem; background: rgba(236,72,153,0.08); border-radius: 8px;">
+          <div style="font-size: 0.75rem; color: var(--accent-pink); font-weight: 700; margin-bottom: 0.3rem;">FutureVision 플랫폼</div>
+          <p style="color: var(--text-secondary); font-size: 0.8rem;">
+            DVA 기반 인텔리전스 레이어. 이미 실제 생산 환경에서 자율 운영 실증 완료.
+            향후 다양한 로봇 하드웨어에 라이선스 예정.
+          </p>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div class="dual-connector">
+        <div class="connector-line" style="height: 40px;"></div>
+        <div class="connector-icon" style="background: rgba(245,158,11,0.2); border-color: var(--accent-orange);">⚔️</div>
+        <div style="font-size: 0.7rem; color: var(--text-dim); text-align: center; padding: 0.5rem 0;">
+          비디오 상상<br>vs<br>RL 스킬
+        </div>
+        <div class="connector-icon" style="background: rgba(245,158,11,0.2); border-color: var(--accent-orange); animation-direction: reverse;">🔬</div>
+        <div class="connector-line" style="height: 40px;"></div>
+      </div>
+
+      <!-- Sharpa -->
+      <div class="system-box" style="border-color: rgba(118,185,0,0.4);">
+        <span class="sys-tag" style="background: rgba(118,185,0,0.2); color: var(--accent-green);">RL + IMITATION LEARNING</span>
+        <h3 style="color: var(--accent-green); margin-bottom: 0.3rem;">Sharpa (셰파)</h3>
+        <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 1rem;">
+          NVIDIA GTC 2026 Booth #1838 · 사과 깎기 자율 시연 · AI 로보틱스 유니콘
+        </p>
+
+        <h4 style="font-size: 0.9rem; color: var(--accent-orange); margin-bottom: 0.5rem;">핵심 주장: "RL 기반 전문가 + VLA가 정답"</h4>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+          VLM이 고수준 계획을, RL로 학습된 전문가 네트워크가 저수준 반사적 행동을 담당하는
+          계층적 아키텍처가 Physical AI의 올바른 경로.
+        </p>
+
+        <h4 style="font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.5rem;">MoDE-VLA (Mixture-of-Dexterous-Experts VLA)</h4>
+        <ul>
+          <li><strong style="color: var(--accent-green);">Sparse MoE Routing</strong>: 작업 단계별로 전문가 네트워크 선택적 활성화</li>
+          <li>"접촉 개시" 전문가, "회전" 전문가 등 과제 특화 모듈</li>
+          <li><strong>Residual Injection</strong>: 접촉 인식 보정을 사전학습 지식 위에 주입</li>
+          <li>시각/힘/촉각 멀티모달 센서 융합</li>
+          <li>IMCopilot: RL 기반 인핸드 조작 마이크로 스킬 + 공유 자율성</li>
+        </ul>
+
+        <div style="margin-top: 1rem; padding: 1rem; background: rgba(118,185,0,0.08); border-radius: 8px;">
+          <div style="font-size: 0.75rem; color: var(--accent-green); font-weight: 700; margin-bottom: 0.3rem;">사과 깎기 벤치마크</div>
+          <p style="color: var(--text-secondary); font-size: 0.8rem;">
+            세계 최초 자율 양손 사과 깎기 시연. 성공률 30%, 껍질 완성률 73%.
+            NVIDIA와 시뮬레이션 갭 브리지 공동 연구 진행 중.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Technical Comparison Table -->
+  <div class="reveal" style="margin-top: 2.5rem;">
+    <h4 style="margin-bottom: 1rem;">기술적 접근법 비교</h4>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>비교 항목</th>
+          <th style="color: var(--accent-pink);">Rhoda AI (DVA)</th>
+          <th style="color: var(--accent-green);">Sharpa (MoDE-VLA)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>핵심 아이디어</strong></td>
+          <td>로봇 제어 = 비디오 생성 문제</td>
+          <td>RL 전문가 + VLA 계층 구조</td>
+        </tr>
+        <tr>
+          <td><strong>학습 데이터</strong></td>
+          <td>수억 개 인터넷 비디오 + 소량 로봇 데이터</td>
+          <td>시뮬레이션 RL + 인간 시연 데이터</td>
+        </tr>
+        <tr>
+          <td><strong>스케일링 전략</strong></td>
+          <td>웹 비디오 = 무한 스케일 데이터</td>
+          <td>시뮬레이션 + 합성 데이터 생성</td>
+        </tr>
+        <tr>
+          <td><strong>아키텍처</strong></td>
+          <td>Causal Video Model (Autoregressive)</td>
+          <td>Sparse MoE + Residual Injection</td>
+        </tr>
+        <tr>
+          <td><strong>추론 방식</strong></td>
+          <td>미래 비디오 예측 → 액션 디코딩</td>
+          <td>VLM 계획 → 전문가 네트워크 실행</td>
+        </tr>
+        <tr>
+          <td><strong>장점</strong></td>
+          <td>데이터 효율성, 긴 컨텍스트, 범용성</td>
+          <td>접촉 풍부 작업, 촉각 통합, 정밀도</td>
+        </tr>
+        <tr>
+          <td><strong>약점/과제</strong></td>
+          <td>비디오→액션 매핑의 정밀도, 실시간성</td>
+          <td>시뮬레이션 의존도, 새 작업 확장 비용</td>
+        </tr>
+        <tr>
+          <td><strong>실증 수준</strong></td>
+          <td>실제 생산 환경 자율 운영 입증</td>
+          <td>GTC 데모 (사과 깎기 73% 완성률)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- The Debate: Video Imagination vs RL Skills -->
+  <div class="reveal" style="margin-top: 2.5rem;">
+    <div class="opinion-card" style="background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(118,185,0,0.08));">
+      <h3 style="color: var(--accent-orange);">🔥 핵심 논쟁: "비디오 상상" vs "RL 스킬", 어느 것이 정답인가?</h3>
+      <p>
+        이 논쟁은 Physical AI의 근본적인 질문으로 귀결됩니다:
+        <strong style="color: var(--text-primary);">"로봇의 지능은 어디에서 와야 하는가?"</strong>
+      </p>
+      <p>
+        <strong style="color: var(--accent-pink);">Rhoda의 관점:</strong>
+        물리 세계를 이해하는 가장 확장 가능한 방법은 수억 개의 비디오에서 물리 법칙과 상호작용 패턴을 학습하는 것입니다.
+        로봇 전용 데이터(텔레오퍼레이션)를 수만 시간 모아도 VLA의 범용성은 한계가 있으며,
+        "비디오 생성 = 세계 이해 = 로봇 제어"라는 등식이 성립합니다.
+        이는 NVIDIA Cosmos의 World Foundation Model과도 철학적으로 맞닿아 있습니다.
+      </p>
+      <p>
+        <strong style="color: var(--accent-green);">Sharpa의 관점:</strong>
+        비디오로 "상상"하는 것만으로는 칼이 사과 껍질에 닿는 순간의 미세한 힘 제어를 해결할 수 없습니다.
+        접촉이 풍부한(contact-rich) 실세계 작업에서는 RL로 단련된 전문가 네트워크의 반사적 능력이 필수적이며,
+        VLM은 고수준 계획에만 사용해야 합니다. 이는 GR00T N1의 System 1/2 이중 구조와 유사한 철학입니다.
+      </p>
+      <p style="color: var(--accent-blue);">
+        <strong>분석:</strong> 두 접근법은 상호 배타적이지 않을 가능성이 높습니다.
+        Rhoda의 비디오 기반 세계 모델이 "무엇을 해야 하는지"를 이해하고,
+        Sharpa 스타일의 RL 전문가가 "어떻게 정밀하게 실행할 것인지"를 담당하는
+        <strong style="color: var(--text-primary);">하이브리드 아키텍처</strong>가 궁극적인 해법일 수 있습니다.
+        이는 GR00T N1이 이미 System 2(VLM 추론) + System 1(Diffusion 액션)으로 시도하고 있는 방향이기도 합니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- Funding Landscape -->
+  <div class="reveal" style="margin-top: 2rem;">
+    <h4 style="margin-bottom: 1rem;">2026년 Physical AI 스타트업 투자 현황</h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+      <div class="card" style="text-align: center; border-color: rgba(236,72,153,0.3);">
+        <div style="font-size: 0.8rem; color: var(--accent-pink); font-weight: 700;">Rhoda AI</div>
+        <div style="font-size: 2rem; font-weight: 900; color: var(--text-primary); font-family: 'JetBrains Mono'; margin: 0.5rem 0;">$450M</div>
+        <div style="font-size: 0.75rem; color: var(--text-dim);">Series A · $1.7B 밸류에이션</div>
+        <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem;">Khosla, Temasek, Mayfield</div>
+      </div>
+      <div class="card" style="text-align: center; border-color: rgba(0,180,216,0.3);">
+        <div style="font-size: 0.8rem; color: var(--accent-blue); font-weight: 700;">Sunday Robotics</div>
+        <div style="font-size: 2rem; font-weight: 900; color: var(--text-primary); font-family: 'JetBrains Mono'; margin: 0.5rem 0;">$165M</div>
+        <div style="font-size: 0.75rem; color: var(--text-dim);">Series B · $1.15B 밸류에이션</div>
+        <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem;">Coatue, Tiger Global, Benchmark</div>
+      </div>
+      <div class="card" style="text-align: center; border-color: rgba(118,185,0,0.3);">
+        <div style="font-size: 0.8rem; color: var(--accent-green); font-weight: 700;">Sharpa</div>
+        <div style="font-size: 2rem; font-weight: 900; color: var(--text-primary); font-family: 'JetBrains Mono'; margin: 0.5rem 0;">Unicorn</div>
+        <div style="font-size: 0.75rem; color: var(--text-dim);">AI 로보틱스 유니콘 · NVIDIA 파트너</div>
+        <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem;">GTC 2026 시뮬레이션 갭 공동 연구</div>
+      </div>
+      <div class="card" style="text-align: center; border-color: rgba(139,92,246,0.3);">
+        <div style="font-size: 0.8rem; color: var(--accent-purple); font-weight: 700;">ALOHA (오픈소스)</div>
+        <div style="font-size: 2rem; font-weight: 900; color: var(--text-primary); font-family: 'JetBrains Mono'; margin: 0.5rem 0;">$20K</div>
+        <div style="font-size: 0.75rem; color: var(--text-dim);">Stanford · 양팔 텔레오퍼레이션 플랫폼</div>
+        <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem;">모방학습 연구의 사실상 표준</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 7. INDUSTRY ===== -->
+<section class="section" id="industry">
+  <div class="section-header reveal">
+    <div class="section-tag">07 — Industry Applications</div>
+    <h2 class="section-title">산업별 응용 분야</h2>
+    <p class="section-desc">Physical AI가 혁신하고 있는 주요 산업과 실제 적용 사례</p>
+  </div>
+
+  <div class="industry-grid reveal">
+    <div class="industry-card">
+      <div class="industry-icon">🏭</div>
+      <h4>제조업 & 자동차</h4>
+      <p>스마트 팩토리의 로봇 자동화, 품질 검사, 용접, 조립 공정의 AI화. 물류 자동화 및 예측 정비.</p>
+      <div class="industry-stat" style="color: var(--accent-green);">시장 점유율: 23.1% (2025)</div>
+    </div>
+    <div class="industry-card">
+      <div class="industry-icon">🚗</div>
+      <h4>자율주행</h4>
+      <p>Alpamayo R1으로 Level 4 자율주행. Chain-of-thought 추론으로 에지 케이스(교통 신호 고장 등) 대응.</p>
+      <div class="industry-stat" style="color: var(--accent-blue);">25개국 1,727시간 데이터셋</div>
+    </div>
+    <div class="industry-card">
+      <div class="industry-icon">🏥</div>
+      <h4>헬스케어</h4>
+      <p>수술 보조 로봇, 재활치료 로봇, 환자 돌봄 로봇, AI 진단 플랫폼. 가장 빠르게 성장하는 분야.</p>
+      <div class="industry-stat" style="color: var(--accent-purple);">CAGR: 39.4% (최고 성장률)</div>
+    </div>
+    <div class="industry-card">
+      <div class="industry-icon">📦</div>
+      <h4>물류 & 웨어하우징</h4>
+      <p>배달 로봇, 무인 운반체(AGV/AMR), 자동 피킹 시스템. $50조 규모의 제조/물류 산업 변혁.</p>
+      <div class="industry-stat" style="color: var(--accent-orange);">$50조 산업 변혁 기회</div>
+    </div>
+    <div class="industry-card">
+      <div class="industry-icon">🏗️</div>
+      <h4>건설 & 중장비</h4>
+      <p>Caterpillar 등 글로벌 기업이 Physical AI 적용. 자율 중장비, 건설 현장 안전 모니터링.</p>
+      <div class="industry-stat" style="color: var(--accent-pink);">CES 2026 현장 데모 시연</div>
+    </div>
+    <div class="industry-card">
+      <div class="industry-icon">🏠</div>
+      <h4>서비스 & 소셜 로봇</h4>
+      <p>안내 로봇, 서빙 로봇, 노인 돌봄, 교육 보조. NEURA Robotics 등 소셜 로봇 기업의 Physical AI 채택.</p>
+      <div class="industry-stat" style="color: var(--accent-green);">실험실 → 현장 배포 단계 진입</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 8. MARKET ===== -->
+<section class="section" id="market" style="background: var(--bg-secondary); border-radius: 0; max-width: 100%; padding-left: calc((100% - 1200px)/2 + 2rem); padding-right: calc((100% - 1200px)/2 + 2rem);">
+  <div class="section-header reveal">
+    <div class="section-tag">08 — Market Analysis</div>
+    <h2 class="section-title">시장 규모 및 성장 전망</h2>
+    <p class="section-desc">CAGR 31~33%로 폭발적 성장이 예측되는 Physical AI 시장</p>
+  </div>
+
+  <div class="chart-container reveal">
+    <h4 style="margin-bottom: 1.5rem;">Physical AI 글로벌 시장 규모 전망 (단위: 억 달러)</h4>
+    <div class="bar-chart" id="marketChart">
+      <div class="bar-col">
+        <div class="bar" style="height: 0; background: linear-gradient(180deg, var(--accent-green), rgba(118,185,0,0.5));" data-height="18%">
+          <div class="bar-value">$54</div>
+        </div>
+        <div class="bar-label">2025</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar" style="height: 0; background: linear-gradient(180deg, var(--accent-blue), rgba(0,180,216,0.5));" data-height="28%">
+          <div class="bar-value">$82</div>
+        </div>
+        <div class="bar-label">2027</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar" style="height: 0; background: linear-gradient(180deg, var(--accent-purple), rgba(139,92,246,0.5));" data-height="42%">
+          <div class="bar-value">$152</div>
+        </div>
+        <div class="bar-label">2029</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar" style="height: 0; background: linear-gradient(180deg, var(--accent-orange), rgba(245,158,11,0.5));" data-height="62%">
+          <div class="bar-value">$320</div>
+        </div>
+        <div class="bar-label">2031</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar" style="height: 0; background: linear-gradient(180deg, var(--accent-pink), rgba(236,72,153,0.5));" data-height="82%">
+          <div class="bar-value">$497</div>
+        </div>
+        <div class="bar-label">2033</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar" style="height: 0; background: linear-gradient(180deg, #10b981, rgba(16,185,129,0.5));" data-height="100%">
+          <div class="bar-value">$828</div>
+        </div>
+        <div class="bar-label">2035</div>
+      </div>
+    </div>
+    <p style="color: var(--text-dim); font-size: 0.75rem; margin-top: 1rem; text-align: center;">
+      출처: Grand View Research, Acumen Research, MarketsandMarkets (2025-2026). CAGR ~32.8%.
+    </p>
+  </div>
+
+  <div class="reveal" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+    <div class="card">
+      <h4 style="color: var(--accent-green); margin-bottom: 0.5rem;">기술별 점유율</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        컴퓨터 비전: <strong>32.5%</strong> (1위)<br>
+        하드웨어 세그먼트: <strong>53.8%</strong><br>
+        소프트웨어 & 서비스: 46.2%
+      </p>
+    </div>
+    <div class="card">
+      <h4 style="color: var(--accent-blue); margin-bottom: 0.5rem;">지역별 점유율 (2025)</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        북미: <strong>40.6%</strong> (1위)<br>
+        아시아 태평양: <strong>30.6%</strong> (CAGR 34.6%)<br>
+        유럽: ~20%
+      </p>
+    </div>
+    <div class="card">
+      <h4 style="color: var(--accent-purple); margin-bottom: 0.5rem;">성장 동인</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        로봇공학 & AI 수렴<br>
+        파운데이션 모델 발전<br>
+        엣지 AI 컴퓨팅 성숙<br>
+        산업 디지털화 가속
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 9. CHALLENGES ===== -->
+<section class="section" id="challenges">
+  <div class="section-header reveal">
+    <div class="section-tag">09 — Challenges</div>
+    <h2 class="section-title">기술적 과제와 한계</h2>
+    <p class="section-desc">Physical AI가 넘어야 할 산 — 현재의 기술적 과제와 미해결 문제들</p>
+  </div>
+
+  <div class="challenge-grid reveal">
+    <div class="challenge-card">
+      <div class="challenge-num">01</div>
+      <h4>Sim-to-Real Gap</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        시뮬레이션은 마모, 드리프트, 접촉 역학 등 현실의 복잡한 물리 현상을 완전히 재현하지 못합니다.
+        센서 노이즈와 지연이 없는 시뮬레이션의 "깨끗한 신호"는 현실과 괴리됩니다.
+      </p>
+    </div>
+    <div class="challenge-card">
+      <div class="challenge-num">02</div>
+      <h4>비정형 환경에서의 인지</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        물리 세계에서 AI는 더 많은 객체, 레이아웃, 엣지 케이스에 직면합니다.
+        개방형 환경에서의 데이터 요구량은 실세계 데이터 수집 속도를 초과합니다.
+      </p>
+    </div>
+    <div class="challenge-card">
+      <div class="challenge-num">03</div>
+      <h4>에너지 효율성</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        대규모 VLM 기반 추론을 엣지 디바이스에서 실시간으로 수행하는 것은
+        전력 소비 및 발열 측면에서 심각한 제약이 있습니다.
+      </p>
+    </div>
+    <div class="challenge-card">
+      <div class="challenge-num">04</div>
+      <h4>안전성 & 신뢰성</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        물리적으로 행동하는 AI는 소프트웨어 버그가 물리적 손해로 이어질 수 있습니다.
+        예측 불가능한 행동에 대한 안전 보장 메커니즘이 아직 미성숙합니다.
+      </p>
+    </div>
+    <div class="challenge-card">
+      <div class="challenge-num">05</div>
+      <h4>일반화(Generalization)</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        특정 환경에서 학습한 정책이 새로운 환경으로 전이되는 성능이 아직 제한적입니다.
+        진정한 "범용 로봇"까지의 거리는 여전히 멉니다.
+      </p>
+    </div>
+    <div class="challenge-card">
+      <div class="challenge-num">06</div>
+      <h4>규제 & 윤리</h4>
+      <p style="color: var(--text-secondary); font-size: 0.85rem;">
+        자율 로봇의 법적 책임 소재, 의사결정의 투명성(설명 가능성),
+        노동 시장에 대한 영향 등 사회적/법적 프레임워크가 기술 발전 속도를 따라잡지 못하고 있습니다.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 10. OPINION ===== -->
+<section class="section" id="opinion" style="background: var(--bg-secondary); border-radius: 0; max-width: 100%; padding-left: calc((100% - 1200px)/2 + 2rem); padding-right: calc((100% - 1200px)/2 + 2rem);">
+  <div class="section-header reveal">
+    <div class="section-tag">10 — Analysis & Opinion</div>
+    <h2 class="section-title">분석 견해</h2>
+    <p class="section-desc">Physical AI의 현재와 미래에 대한 종합적 분석</p>
+  </div>
+
+  <div class="opinion-card reveal">
+    <h3>Physical AI는 "세 번째 플랫폼 시프트"의 시작점이다</h3>
+    <p>
+      PC → Mobile → Cloud로 이어진 플랫폼 시프트에 이어, Physical AI는 "디지털 지능이 물리 세계와 직접 상호작용하는"
+      네 번째 패러다임의 서막입니다. 그러나 더 정확히는, Generative AI가 "텍스트와 이미지를 생성"하던 것에서
+      "물리적 행동을 생성"하는 단계로의 도약 — 즉 AI 자체의 세 번째 진화입니다.
+    </p>
+    <p>
+      NVIDIA의 전략은 명확합니다: <strong style="color: var(--text-primary);">Omniverse(디지털 트윈) → Cosmos(세계 모델) → Isaac/Alpamayo(로봇/AV 모델) →
+      실세계 배포</strong>라는 수직 통합 파이프라인입니다. 이는 "GPU를 파는 회사"에서 "Physical AI의 운영체제를 제공하는 플랫폼 회사"로의
+      전환을 의미합니다.
+    </p>
+  </div>
+
+  <div class="opinion-card reveal">
+    <h3>GR00T N1의 이중 시스템: 인지 과학의 AI 구현</h3>
+    <p>
+      Daniel Kahneman의 "Thinking, Fast and Slow"에서 제시한 System 1/System 2 이론을 로봇 아키텍처에
+      직접 구현한 것은 단순한 엔지니어링을 넘어선 인지 과학적 접근입니다.
+      빠른 반사적 행동(Diffusion Transformer)과 신중한 추론(VLM)을 End-to-End로 공동 학습하는 구조는
+      기존의 계층적 로봇 제어(perception → planning → control)를 근본적으로 재정의합니다.
+    </p>
+    <p>
+      특히 주목할 점은 <strong style="color: var(--text-primary);">오픈 모델</strong> 전략입니다. GR00T N1과 Alpamayo R1을 오픈소스로 공개함으로써,
+      NVIDIA는 모델 자체보다 이를 학습시키고 배포하는 인프라(GPU, Omniverse, OSMO)에서 수익을 창출하는
+      "Android 전략"을 Physical AI에 적용하고 있습니다.
+    </p>
+  </div>
+
+  <div class="opinion-card reveal">
+    <h3>남아있는 핵심 질문들</h3>
+    <p>
+      <strong style="color: var(--accent-orange);">1. "ChatGPT 모먼트"는 과연 도래했는가?</strong><br>
+      Jensen Huang은 CES 2026에서 Physical AI의 ChatGPT 모먼트를 선언했지만,
+      ChatGPT가 일반 사용자도 즉시 사용할 수 있었던 것과 달리, Physical AI는 여전히 하드웨어 + 시뮬레이션 + 배포라는
+      복합적 장벽이 존재합니다. "기술의 ChatGPT 모먼트"와 "시장의 ChatGPT 모먼트"는 다를 수 있습니다.
+    </p>
+    <p>
+      <strong style="color: var(--accent-blue);">2. 데이터의 병목 현상 — Rhoda가 던진 질문</strong><br>
+      로보틱스에서 가장 큰 병목은 더 이상 연산 능력이 아니라 다양하고 정확하게 레이블링된 학습 데이터입니다.
+      Rhoda AI는 이에 대해 급진적 해법을 제시합니다: 로봇 데이터 대신 인터넷 비디오를 쓰자는 것.
+      이것이 VLA의 데이터 병목을 정말로 해결할지, 아니면 "비디오를 봤지만 손으로 느낄 수 없는" 근본적 한계에 부딪힐지가
+      2026년의 가장 중요한 기술 논쟁입니다.
+    </p>
+    <p>
+      <strong style="color: var(--accent-purple);">3. 범용 vs. 특화 — Sharpa가 보여준 현실</strong><br>
+      GR00T N1은 "범용 휴머노이드 로봇"을 지향하지만, Sharpa의 사과 깎기 데모가 보여주듯
+      접촉이 풍부한 정밀 작업에서는 RL로 단련된 특화 스킬이 아직은 필수적입니다.
+      범용 모델의 진가는 이런 특화 스킬을 얼마나 빠르게 새로운 도메인에 적응시킬 수 있느냐에 달려 있습니다.
+    </p>
+    <p>
+      <strong style="color: var(--accent-pink);">4. 패러다임 수렴의 시점</strong><br>
+      Rhoda의 비디오 예측(세계 이해), Sharpa의 RL 전문가(정밀 실행), NVIDIA의 이중 시스템(추론+행동) —
+      이 세 접근법은 결국 하나의 통합 아키텍처로 수렴할 가능성이 높습니다.
+      그 수렴의 속도가 Physical AI의 상용화 타임라인을 결정할 것입니다.
+    </p>
+  </div>
+
+  <div class="opinion-card reveal" style="background: linear-gradient(135deg, rgba(118,185,0,0.12), rgba(139,92,246,0.08));">
+    <h3>2026-2030 전망: Physical AI가 변화시킬 것들</h3>
+    <p>
+      <strong style="color: var(--accent-green);">단기 (2026-2027):</strong>
+      물류 웨어하우스, 제조 라인에서의 특화형 Physical AI 본격 상용화. 자율주행 L4 제한적 상용화.
+      서비스 로봇 파일럿 프로젝트 확대.<br><br>
+      <strong style="color: var(--accent-blue);">중기 (2028-2029):</strong>
+      Sim-to-Real 갭의 의미 있는 축소. 범용 휴머노이드의 제한적 산업 투입.
+      헬스케어 분야 수술/재활 로봇의 주류화.<br><br>
+      <strong style="color: var(--accent-purple);">장기 (2030+):</strong>
+      Physical AI가 "노동"의 정의를 근본적으로 변화시키는 시점. 인간-로봇 협업의 보편화.
+      에지 AI의 완전한 성숙으로 로컬 추론이 클라우드 수준에 도달.
+    </p>
+  </div>
+</section>
+
+<!-- ===== 11. SOURCES ===== -->
+<section class="section" id="sources">
+  <div class="section-header reveal">
+    <div class="section-tag">11 — Sources & References</div>
+    <h2 class="section-title">참고 자료 및 출처</h2>
+  </div>
+
+  <div class="reveal">
+    <ul class="source-list">
+      <li><span class="source-tag tag-nvidia">NVIDIA</span><a href="https://blogs.nvidia.com/blog/ces-2025-jensen-huang/" target="_blank">CES 2025: AI Advancing at 'Incredible Pace' — Jensen Huang Keynote</a></li>
+      <li><span class="source-tag tag-nvidia">NVIDIA</span><a href="https://blogs.nvidia.com/blog/2026-ces-special-presentation/" target="_blank">CES 2026: NVIDIA Rubin Platform, Open Models, Autonomous Driving</a></li>
+      <li><span class="source-tag tag-nvidia">NVIDIA</span><a href="https://nvidianews.nvidia.com/news/nvidia-releases-new-physical-ai-models-as-global-partners-unveil-next-generation-robots" target="_blank">NVIDIA Physical AI Models — Next-Generation Robots</a></li>
+      <li><span class="source-tag tag-nvidia">NVIDIA</span><a href="https://nvidianews.nvidia.com/news/nvidia-isaac-gr00t-n1-open-humanoid-robot-foundation-model-simulation-frameworks" target="_blank">Isaac GR00T N1 — World's First Open Humanoid Robot Foundation Model</a></li>
+      <li><span class="source-tag tag-nvidia">NVIDIA</span><a href="https://nvidianews.nvidia.com/news/nvidia-launches-cosmos-world-foundation-model-platform-to-accelerate-physical-ai-development" target="_blank">Cosmos World Foundation Model Platform Launch</a></li>
+      <li><span class="source-tag tag-nvidia">NVIDIA</span><a href="https://nvidianews.nvidia.com/news/alpamayo-autonomous-vehicle-development" target="_blank">Alpamayo — Open AI Models for Level 4 Autonomous Vehicles</a></li>
+      <li><span class="source-tag tag-nvidia">NVIDIA</span><a href="https://www.nvidia.com/en-us/glossary/generative-physical-ai/" target="_blank">NVIDIA Glossary: Generative Physical AI</a></li>
+      <li><span class="source-tag tag-research">RESEARCH</span><a href="https://arxiv.org/abs/2501.03575" target="_blank">Cosmos World Foundation Model Platform for Physical AI (arXiv)</a></li>
+      <li><span class="source-tag tag-research">RESEARCH</span><a href="https://arxiv.org/abs/2503.14734" target="_blank">GR00T N1: An Open Foundation Model for Generalist Humanoid Robots (arXiv)</a></li>
+      <li><span class="source-tag tag-research">RESEARCH</span><a href="https://www.deloitte.com/us/en/insights/topics/technology-management/tech-trends/2026/physical-ai-humanoid-robots.html" target="_blank">Deloitte: AI Goes Physical — Convergence of AI and Robotics</a></li>
+      <li><span class="source-tag tag-market">MARKET</span><a href="https://www.grandviewresearch.com/industry-analysis/physical-ai-market-report" target="_blank">Grand View Research: Physical AI Market Size & Share Report 2033</a></li>
+      <li><span class="source-tag tag-market">MARKET</span><a href="https://www.acumenresearchandconsulting.com/physical-ai-market" target="_blank">Acumen Research: Physical AI Market 2026-2035 ($82.8B by 2035)</a></li>
+      <li><span class="source-tag tag-market">MARKET</span><a href="https://www.snsinsider.com/reports/physical-ai-market-9007" target="_blank">SNS Insider: Physical AI Market to $49.73B by 2033</a></li>
+      <li><span class="source-tag tag-korean">한국어</span><a href="https://ko.wikipedia.org/wiki/%ED%94%BC%EC%A7%80%EC%BB%AC_AI" target="_blank">위키백과: 피지컬 AI</a></li>
+      <li><span class="source-tag tag-korean">한국어</span><a href="https://blog-ko.superb-ai.com/what-is-physical-ai-next-wave/" target="_blank">Superb AI: 젠슨 황이 선언한 AI의 다음 물결, 피지컬 AI란 무엇인가?</a></li>
+      <li><span class="source-tag tag-korean">한국어</span><a href="https://blog-ko.superb-ai.com/physical-ai-deep-dive/" target="_blank">Superb AI: 피지컬 AI — 로봇의 학습 원리부터 빅테크 동향까지</a></li>
+      <li><span class="source-tag tag-korean">한국어</span><a href="https://www.igloo.co.kr/security-information/ai%EA%B0%80-%EC%84%B8%EC%83%81%EC%97%90-%EB%82%98%EC%98%A8%EB%8B%A4-%ED%94%BC%EC%A7%80%EC%BB%AC-aiphysical-ai/" target="_blank">이글루코퍼레이션: AI가 세상에 나온다, 피지컬 AI</a></li>
+      <li style="padding-top: 1rem; border-top: 2px solid rgba(236,72,153,0.3);"><span style="font-size: 0.85rem; color: var(--accent-pink); font-weight: 700;">🆕 GTC 2026 스타트업 관련</span></li>
+      <li><span class="source-tag" style="background: rgba(236,72,153,0.2); color: var(--accent-pink);">RHODA</span><a href="https://www.rhoda.ai/" target="_blank">Rhoda AI — 공식 웹사이트</a></li>
+      <li><span class="source-tag" style="background: rgba(236,72,153,0.2); color: var(--accent-pink);">RHODA</span><a href="https://www.rhoda.ai/research/direct-video-action" target="_blank">Rhoda AI Research: Direct Video-Action Models (DVA)</a></li>
+      <li><span class="source-tag" style="background: rgba(236,72,153,0.2); color: var(--accent-pink);">RHODA</span><a href="https://www.businesswire.com/news/home/20260310715139/en/Rhoda-AI-Exits-Stealth-with-$450-Million-Series-A-to-Bring-Robots-Out-of-the-Lab-and-Into-the-Real-World" target="_blank">Rhoda AI Exits Stealth with $450M Series A (BusinessWire)</a></li>
+      <li><span class="source-tag" style="background: rgba(236,72,153,0.2); color: var(--accent-pink);">RHODA</span><a href="https://www.mayfield.com/why-we-backed-rhoda-ai-the-30-trillion-physical-ai-market/" target="_blank">Mayfield: Why We Backed Rhoda AI — The $30T Physical AI Market</a></li>
+      <li><span class="source-tag" style="background: rgba(118,185,0,0.2); color: var(--accent-green);">SHARPA</span><a href="https://www.sharpa.com/" target="_blank">Sharpa — 공식 웹사이트</a></li>
+      <li><span class="source-tag" style="background: rgba(118,185,0,0.2); color: var(--accent-green);">SHARPA</span><a href="https://arxiv.org/abs/2603.08122" target="_blank">MoDE-VLA: Mixture-of-Dexterous-Experts VLA (arXiv:2603.08122)</a></li>
+      <li><span class="source-tag" style="background: rgba(118,185,0,0.2); color: var(--accent-green);">SHARPA</span><a href="https://www.humanoidsdaily.com/news/the-apple-peeling-milestone-how-sharpa-s-mode-vla-unlocks-bimanual-dexterity" target="_blank">Humanoids Daily: The Apple Peeling Milestone — Sharpa MoDE-VLA</a></li>
+      <li><span class="source-tag" style="background: rgba(118,185,0,0.2); color: var(--accent-green);">SHARPA</span><a href="https://www.roboticstomorrow.com/news/2026/03/13/ai-robotics-unicorn-sharpa-and-nvidia-bridge-the-simulation-gap-for-dexterous-robot-training/26260/" target="_blank">Sharpa and NVIDIA Bridge Simulation Gap for Dexterous Robot Training</a></li>
+      <li><span class="source-tag" style="background: rgba(0,180,216,0.2); color: var(--accent-blue);">SUNDAY</span><a href="https://techcrunch.com/2026/03/12/humanoid-robotics-maker-sunday-reaches-1-15b-valuation-to-build-household-robots/" target="_blank">TechCrunch: Sunday Reaches $1.15B Valuation for Household Robots</a></li>
+      <li><span class="source-tag" style="background: rgba(0,180,216,0.2); color: var(--accent-blue);">SUNDAY</span><a href="https://siliconangle.com/2025/11/20/sunday-wants-put-robot-every-home-beginning-launch-memo/" target="_blank">SiliconANGLE: Sunday Wants to Put a Robot in Every Home</a></li>
+      <li><span class="source-tag" style="background: rgba(245,158,11,0.2); color: var(--accent-orange);">영상</span><a href="https://youtu.be/-sa8-SxgrVU" target="_blank">원본 팟캐스트: Rhoda AI & Sharpa GTC 2026 분석</a></li>
+    </ul>
+  </div>
+
+  <div class="reveal" style="margin-top: 2rem;">
+    <div class="card" style="border-color: rgba(245,158,11,0.3);">
+      <h4 style="color: var(--accent-orange); margin-bottom: 0.8rem;">📹 원본 영상</h4>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">
+        <strong>영상 1 — Physical AI 개요:</strong>
+        <a href="https://youtu.be/3zHflj-ilq4" target="_blank" style="color: var(--accent-blue); text-decoration: none;">
+          https://youtu.be/3zHflj-ilq4
+        </a><br>
+        <strong>영상 2 — Rhoda AI & Sharpa GTC 2026:</strong>
+        <a href="https://youtu.be/-sa8-SxgrVU" target="_blank" style="color: var(--accent-blue); text-decoration: none;">
+          https://youtu.be/-sa8-SxgrVU
+        </a><br><br>
+        <em style="color: var(--text-dim);">참고: YouTube 스크립트 직접 추출이 네트워크 제한으로 불가하여,
+        영상의 챕터 구성 및 디스크립션 관련 링크를 기반으로 포괄적 리서치를 수행하여 보고서에 반영했습니다.</em>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+  <p>Physical AI Deep Dive Report — Generated April 2026</p>
+  <p style="margin-top: 0.5rem;">Based on comprehensive research from NVIDIA, academic papers, and market analysis reports.</p>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+// Particles
+(function() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 8 + 's';
+    p.style.animationDuration = (6 + Math.random() * 6) + 's';
+    const colors = ['#76b900', '#00b4d8', '#8b5cf6', '#f59e0b'];
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    container.appendChild(p);
+  }
+})();
+
+// Counter animation
+function animateCounter(id, target, suffix = '') {
+  const el = document.getElementById(id);
+  const duration = 2000;
+  const start = performance.now();
+  function update(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(target * eased) + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// Scroll reveal
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// Hero counters trigger
+const heroObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      animateCounter('counter1', 54);
+      animateCounter('counter2', 33);
+      animateCounter('counter3', 828);
+      heroObserver.disconnect();
+    }
+  });
+}, { threshold: 0.5 });
+heroObserver.observe(document.querySelector('.hero-stats'));
+
+// Bar chart animation
+const chartObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const bars = entry.target.querySelectorAll('.bar');
+      bars.forEach((bar, i) => {
+        setTimeout(() => {
+          bar.style.height = bar.dataset.height;
+        }, i * 200);
+      });
+      chartObserver.disconnect();
+    }
+  });
+}, { threshold: 0.3 });
+const chart = document.getElementById('marketChart');
+if (chart) chartObserver.observe(chart);
+
+// Tab switching
+function switchTab(event, tabId) {
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+// Nav active state
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.nav-item');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(section => {
+    const sectionTop = section.offsetTop - 100;
+    if (window.scrollY >= sectionTop) {
+      current = section.getAttribute('id');
+    }
+  });
+  navItems.forEach(item => {
+    item.classList.remove('active');
+    if (item.getAttribute('href') === '#' + current) {
+      item.classList.add('active');
+    }
+  });
+});
+
+// Smooth scrolling
+document.querySelectorAll('.nav-item').forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// Layer detail toggle (simple highlight)
+function toggleDetail(el) {
+  el.style.transform = el.style.transform === 'scale(1.02)' ? 'scale(1)' : 'scale(1.02)';
+}
+</script>
+
+</body>
+</html>
